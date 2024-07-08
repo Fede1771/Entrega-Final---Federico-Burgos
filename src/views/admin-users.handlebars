@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Usuarios</title>
+</head>
+<body>
+    <h1>Administrar Usuarios</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each users}}
+            <tr>
+                <td>{{this.first_name}}</td>
+                <td>{{this.email}}</td>
+                <td>{{this.role}}</td>
+                <td>
+                    <button onclick="modifyRole('{{this._id}}')">Modificar Rol</button>
+                    <button onclick="deleteUser('{{this._id}}')">Eliminar Usuario</button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <script>
+        async function modifyRole(userId) {
+            const newRole = prompt("Ingrese el nuevo rol:");
+            if (newRole) {
+                const response = await fetch(`/api/users/modify-role/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+                if (response.ok) {
+                    alert("Rol modificado exitosamente");
+                    location.reload();
+                } else {
+                    alert("Error al modificar el rol");
+                }
+            }
+        }
+
+        async function deleteUser(userId) {
+            const confirmDelete = confirm("¿Está seguro que desea eliminar este usuario?");
+            if (confirmDelete) {
+                const response = await fetch(`/api/users/delete-user/${userId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    alert("Usuario eliminado exitosamente");
+                    location.reload();
+                } else {
+                    alert("Error al eliminar el usuario");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
