@@ -16,6 +16,7 @@ const cartsRouter = require("./routes/carts.router.js");
 const viewsRouter = require("./routes/views.router.js");
 const userRouter = require("./routes/user.router.js");
 const mockingProductsRoute = require("./routes/mockingProductsRoute.js");
+const manejadorError = require("./middleware/error.js");
 const SocketManager = require("./sockets/socketmanager.js");
 const authMiddleware = require("./middleware/authmiddleware.js");
 
@@ -64,13 +65,7 @@ app.use("/api/carts", cartsRouter);
 app.use("/api/users", userRouter);
 app.use("/", viewsRouter);
 app.use("/mockingproducts", mockingProductsRoute);
-
-// Middleware para manejar errores
-app.use((err, req, res, next) => {
-    // Manejar errores aquí
-    console.error(err.stack);
-    res.status(500).send('Error interno del servidor');
-});
+app.use(manejadorError);
 
 // Inicialización del servidor HTTP y WebSockets
 const httpServer = app.listen(PUERTO, () => {

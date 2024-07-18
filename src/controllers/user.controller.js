@@ -48,7 +48,7 @@ class UserController {
 
             res.redirect("/api/users/profile");
         } catch (error) {
-            console.error(error);
+            console.error("Error en el registro de usuario:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -82,7 +82,7 @@ class UserController {
 
             res.redirect("/api/users/profile");
         } catch (error) {
-            console.error(error);
+            console.error("Error en el inicio de sesión:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -106,7 +106,7 @@ class UserController {
                 req.user.last_connection = new Date();
                 await req.user.save();
             } catch (error) {
-                console.error(error);
+                console.error("Error al actualizar last_connection:", error);
                 res.status(500).send("Error interno del servidor");
                 return;
             }
@@ -148,7 +148,7 @@ class UserController {
 
             res.redirect("/confirmacion-envio");
         } catch (error) {
-            console.error(error);
+            console.error("Error al solicitar restablecimiento de contraseña:", error);
             res.status(500).send("Error interno del servidor");
         }
     }
@@ -189,7 +189,7 @@ class UserController {
             // Renderizar la vista de confirmación de cambio de contraseña
             return res.redirect("/login");
         } catch (error) {
-            console.error(error);
+            console.error("Error al restablecer la contraseña:", error);
             return res.status(500).render("passwordreset", { error: "Error interno del servidor" });
         }
     }
@@ -203,95 +203,44 @@ class UserController {
                 return res.status(404).send("Usuario no encontrado");
             }
 
-            // Verificamos si el usuario tiene la documentacion requerida: 
-            const documentacionRequerida = ["Identificacion", "Comprobante de domicilio", "Comprobante de estado de cuenta"];
-
-            const userDocuments = user.documents.map(doc => doc.name);
-
-            const tieneDocumentacion = documentacionRequerida.every(doc => userDocuments.includes(doc));
-
-            if (!tieneDocumentacion) {
-                return res.status(400).send("El usuario tiene que completar toda la documentacion requerida o no tendra feriados la proxima semana");
+            // Verificamos si el usuario tiene la propiedad documents
+            if (!user.documents || user.documents.length < 3) {
+                return res.status(400).send("El usuario no ha subido todos los documentos necesarios");
             }
 
-            // Cambiar el rol del usuario
-            const nuevoRol = user.role === "usuario" ? "premium" : "usuario";
-            user.role = nuevoRol;
+            user.role = user.role === "premium" ? "user" : "premium";
             await userRepository.save(user);
 
-            res.send(nuevoRol);
-
+            res.redirect("/api/users");
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error del servidor");
+            console.error("Error al cambiar rol del usuario:", error);
+            res.status(500).send("Error interno del servidor");
         }
     }
 
     async getAllUsers(req, res) {
         try {
             const users = await userRepository.getAllUsers();
-            const usersBasicInfo = users.map(user => ({
-                first_name: user.first_name,
-                email: user.email,
-                role: user.role
-            }));
-            res.json(usersBasicInfo);
+            res.json(users);
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error al obtener usuarios");
+            console.error("Error al obtener usuarios:", error);
+            res.status(500).send("Error interno del servidor");
         }
     }
 
     async deleteInactiveUsers(req, res) {
         try {
-            const inactiveUsers = await userRepository.getInactiveUsers();
-            for (let user of inactiveUsers) {
-                await emailManager.enviarCorreoEliminacionCuenta(user.email, user.first_name);
+            const threshold = 30 * 24 * 60 * 60 * 1000; // 30 días en milisegundos
+            const inactiveUsers = await userRepository.getInactiveUsers(threshold);
+
+            for (const user of inactiveUsers) {
                 await userRepository.deleteUser(user._id);
             }
-            res.status(200).send("Usuarios inactivos eliminados y correos enviados");
+
+            res.send(`Usuarios inactivos eliminados: ${inactiveUsers.length}`);
         } catch (error) {
-            console.error(error);
-            res.status(500).send("Error al eliminar usuarios inactivos");
-        }
-    }
-
-    async deleteUser(req, res) {
-        const { uid } = req.params;
-        try {
-            const user = await userRepository.findById(uid);
-
-            if (!user) {
-                return res.status(404).send("Usuario no encontrado");
-            }
-
-            await userRepository.deleteUser(uid);
-            res.status(200).send("Usuario eliminado correctamente");
-        } catch (error) {
-            console.error(error);
-            res.status(500).send("Error del servidor al eliminar usuario");
-        }
-    }
-
-    async modifyUserRole(req, res) {
-        const { uid } = req.params;
-        try {
-            const user = await userRepository.findById(uid);
-
-            if (!user) {
-                return res.status(404).send("Usuario no encontrado");
-            }
-
-            // Lógica para modificar el rol del usuario
-            const nuevoRol = user.role === "usuario" ? "premium" : "usuario";
-            user.role = nuevoRol;
-            await userRepository.save(user);
-
-            res.send(nuevoRol);
-
-        } catch (error) {
-            console.error(error);
-            res.status(500).send("Error del servidor");
+            console.error("Error al eliminar usuarios inactivos:", error);
+            res.status(500).send("Error interno del servidor");
         }
     }
 }
