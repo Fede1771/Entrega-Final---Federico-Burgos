@@ -7,7 +7,7 @@
   "scripts": {
     "test": "mocha src/test/supertest.test.js",
     "dev": "nodemon src/app.js",
-    "start": "node index.js" // Este es el comando de inicio para Railway
+    "start": "node index.js" 
   },
   "keywords": [],
   "author": "",
