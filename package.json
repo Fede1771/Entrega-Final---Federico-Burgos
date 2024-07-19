@@ -2,11 +2,11 @@
   "name": "borrador--desa--3",
   "version": "1.0.0",
   "description": "Descripción de tu proyecto",
-  "main": "app.js",
+  "main": "src/app.js",  
   "scripts": {
     "test": "mocha src/test/supertest.test.js",
-    "dev": "nodemon src/app.js",
-    "start": "node app.js"
+    "dev": "nodemon src/app.js",  
+    "start": "node src/app.js"   
   },
   "keywords": [],
   "author": "Fede",
