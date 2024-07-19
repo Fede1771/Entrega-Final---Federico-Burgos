@@ -1,16 +1,15 @@
 {
   "name": "borrador--desa--3",
-  "type": "commonjs",
   "version": "1.0.0",
-  "description": "",
+  "description": "Descripción de tu proyecto",
   "main": "app.js",
   "scripts": {
     "test": "mocha src/test/supertest.test.js",
     "dev": "nodemon src/app.js",
-    "start": "node app.js" 
+    "start": "node app.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Fede",
   "license": "ISC",
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
